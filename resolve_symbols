@@ -1,0 +1,68 @@
+#!/usr/bin/perl -w
+#
+# Import a subset of source files, guided by missing symbols errors
+# in "make" compilation log. Keep going until all missing symbol errors
+# are resolved.
+
+my($objects_root) = "/home/marcusmae/amd/MIOpen_build_debug";
+
+while (1)
+{
+        my($errors) = 0;
+	system("cmake .. && ../resolve_includes");
+        my($log) = join("", `make 2>&1`);
+	$log =~ s/\n/ /g;
+	$log =~ s/>>>/#/g;
+	while ($log =~ s/undefined\ssymbol\:\s([^#]+)#\sreferenced\sby//)
+        {
+		my($symbol) = $1;
+		chomp $symbol;
+                $symbol =~ s/\s$//g;
+		print "$symbol\n";
+
+		my($i) = 0;
+		my(@objects) = ();
+		for ( ; $i < 2; $i++)
+		{
+			my($cmd) = "find $objects_root -type f -name \"*.o\" -exec nm -o --demangle {} \\; | grep -F \"T $symbol\"";
+			print "$cmd\n";
+			@objects = split("\n", `$cmd`);
+			if ($i == 1)
+			{
+				# Shitty grep makes symbols with special characters unequal.
+				@objects_exact = grep(/^.*$symbol$/, @objects);
+				@objects = @objects_exact;
+			}
+			if (scalar(@objects) != 0)
+			{
+				last;
+			}
+			$symbol =~ s/\(.*\).*$//g;
+			$symbol =~ s/\[.*\]//g;
+		}
+
+		if (scalar(@objects) == 0)
+		{
+			die "Cannot find symbol $symbol\n";
+		}
+
+		print "@objects\n";
+		my($object) = $objects[0];
+		$object =~ s/.o:.*/.o/g;
+		print "$object\n";
+		my($source) = join("", `../obj2src $object`);
+		chomp $source;
+		print "$source\n";
+
+		system("cp $source ../src/");
+
+		$errors++;
+		last; # add source only for one symbol, should be faster
+        }
+
+        if ($errors == 0)
+        {
+                last;
+        }
+}
+

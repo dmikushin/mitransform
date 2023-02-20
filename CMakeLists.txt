@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
-project(miopen_transform CXX)
+project(mitransform CXX)
 
 if ("x" STREQUAL "x${CMAKE_BUILD_TYPE}")
 set(CMAKE_BUILD_TYPE Release)
@@ -14,6 +14,14 @@ else()
 set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 endif()
+
+find_package(ROCBLAS REQUIRED)
+find_package(Boost COMPONENTS filesystem REQUIRED)
+find_package(SQLite3 REQUIRED)
+find_package(BZip2 REQUIRED)
+find_package(amd_comgr REQUIRED)
+
+add_subdirectory(ThirdParty/mitransform_kernels)
 
 file(GLOB ${PROJECT_NAME}_SOURCE_FILES "src/*.cu" "src/*.cpp")
 file(GLOB ${PROJECT_NAME}_test_SOURCE_FILES "src/test/*.cpp")
@@ -59,7 +67,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES native)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/json/include)
-target_link_libraries(${PROJECT_NAME} hip::amdhip64)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_kernels roc::rocblas Boost::filesystem SQLite::SQLite3 BZip2::BZip2 amd_comgr ${CMAKE_DL_LIBS})
 
 add_executable(${PROJECT_NAME}_test ${${PROJECT_NAME}_test_SOURCE_FILES})
 target_compile_features(${PROJECT_NAME}_test PUBLIC cxx_std_17)

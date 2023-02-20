@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+#
+# For the given object file, get the source file of origin
+# https://stackoverflow.com/a/41233414
+# https://stackoverflow.com/a/40153228
+
+if (scalar(@ARGV) != 1)
+{
+	print "For the given object file, get the source file of origin\n";
+	print "Usage: source_for_object <filename>\n"; 
+	exit 0;
+}
+
+my($object) = $ARGV[0];
+
+my($log) = join("", `gdb --readnow -q -ex "set height 0" -ex "info sources" -ex quit $object 2>&1`);
+$log =~ s/\n/ /g;
+$log =~ s/.*Source files for which symbols have been read in://g;
+
+my($filename) = $log;
+$filename =~ s/\,.*//g;
+chomp $filename;
+$filename =~ s/\s//g;
+
+if (! -e $filename)
+{
+	print STDERR "Warning: object file $object points to '$filename', but it does not exist\n";
+}
+
+print "$filename\n";

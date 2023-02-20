@@ -1,0 +1,103 @@
+/*******************************************************************************
+ *
+ * MIT License
+ *
+ * Copyright (c) 2017 Advanced Micro Devices, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *******************************************************************************/
+
+#include <miopen/db_path.hpp>
+#include <miopen/env.hpp>
+#include <miopen/stringutils.hpp>
+#include <miopen/expanduser.hpp>
+#include <miopen/logger.hpp>
+
+#include <boost/filesystem.hpp>
+
+#include <cstdlib>
+#ifdef __linux__
+#include <dlfcn.h>
+#endif
+
+MIOPEN_DECLARE_ENV_VAR(MIOPEN_SYSTEM_DB_PATH)
+MIOPEN_DECLARE_ENV_VAR(MIOPEN_USER_DB_PATH)
+
+namespace miopen {
+
+boost::filesystem::path GetLibPath()
+{
+    boost::filesystem::path path = {""};
+#ifdef __linux__
+    Dl_info info;
+
+    if(dladdr(reinterpret_cast<void*>(miopenCreate), &info) != 0)
+    {
+        path = boost::filesystem::canonical(boost::filesystem::path{info.dli_fname});
+        MIOPEN_LOG_I2(std::string("Lib Path: ") + path.string());
+        if(path.empty())
+            return path;
+
+        path = path.parent_path();
+    }
+    return path;
+#else
+    MIOPEN_THROW(miopenStatusNotImplemented);
+#endif
+}
+
+std::string GetSystemDbPath()
+{
+    auto p = GetStringEnv(MIOPEN_SYSTEM_DB_PATH{});
+    if(p == nullptr)
+#if MIOPEN_BUILD_DEV
+        return "";
+#else
+    {
+        // Get the module path and construct the db path
+        static const auto lib_path = (GetLibPath().parent_path() / "share/miopen/db/").string();
+        return lib_path;
+    }
+#endif
+    else
+        return p;
+}
+
+namespace {
+std::string PrepareUserDbPath()
+{
+    auto p = GetStringEnv(MIOPEN_USER_DB_PATH{});
+    if(p == nullptr)
+        p = "~/.config/miopen/";
+    return ExpandUser(p);
+}
+} // namespace
+
+std::string GetUserDbSuffix() { return "HIP.2_18_0_a6843180a-dirty"; }
+
+std::string GetSystemFindDbSuffix() { return "HIP"; }
+
+const std::string& GetUserDbPath()
+{
+    static const auto instance = PrepareUserDbPath();
+    return instance;
+}
+
+} // namespace miopen
