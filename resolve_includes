@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+#
+# Import a subset of include files, guided by  missing include errors
+# in "make" compilation log. Keep going until all missing include errors
+# are resolved.
+
+my(@sources_roots) = ("../../../build/MIOpen/src/include", "../../../build/MIOpen");
+
+while (1)
+{
+	my($errors) = 0;
+	my($log) = join("", `make 2>&1`);
+	print "$log";
+	while ($log =~ s/\'([^\']+)\'\sfile\snot\sfound//)
+	{
+		my($filename) = $1;
+		my($found) = "";
+		for $sources_root (@sources_roots)
+		{
+			print "Looking for '$filename' in '$sources_root'\n";
+			$found = join("", `find $sources_root -path "*/$filename"`);
+			chomp $found;
+			print "$found\n";
+			if (! -e "$found")
+			{
+				next;
+			}
+			else
+			{
+				my($dirs) = $found;
+				$dirs =~ s/$sources_root//g;
+				$dirs =~ s/\/[^\/]*$//g;
+				system("mkdir -p ../include/$dirs");
+				system("cp $found ../include/$dirs");
+			}
+
+			last;
+		}
+
+		if (! -e "$found")
+                {
+                        die "Cannot find '$filename'\n";
+                }
+
+		$errors++;
+	}
+
+	if ($errors == 0)
+	{
+		last;
+	}
+}

@@ -16,7 +16,7 @@ endif()
 endif()
 
 file(GLOB ${PROJECT_NAME}_SOURCE_FILES "src/*.cu" "src/*.cpp")
-file(GLOB ${PROJECT_NAME}_test_SOURCE_FILES "src/test/t*.cpp")
+file(GLOB ${PROJECT_NAME}_test_SOURCE_FILES "src/test/*.cpp")
 
 include(CheckLanguage)
 check_language(HIP)
@@ -58,9 +58,11 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES native)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/json/include)
 target_link_libraries(${PROJECT_NAME} hip::amdhip64)
 
 add_executable(${PROJECT_NAME}_test ${${PROJECT_NAME}_test_SOURCE_FILES})
 target_compile_features(${PROJECT_NAME}_test PUBLIC cxx_std_17)
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/test")
 target_link_libraries(${PROJECT_NAME}_test PUBLIC ${PROJECT_NAME})
 
