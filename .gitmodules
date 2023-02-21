@@ -1,3 +1,7 @@
 [submodule "ThirdParty/json"]
 	path = ThirdParty/json
 	url = https://github.com/nlohmann/json.git
+[submodule "ThirdParty/mitransform_kernels"]
+	path = ThirdParty/mitransform_kernels
+	url = https://github.com/dmikushin/mitransform.git
+	branch = kernels
