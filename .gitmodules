@@ -5,3 +5,6 @@
 	path = ThirdParty/mitransform_kernels
 	url = https://github.com/dmikushin/mitransform.git
 	branch = kernels
+[submodule "ThirdParty/gputt"]
+	path = ThirdParty/gputt
+	url = https://github.com/dmikushin/gputt.git
