@@ -17,8 +17,6 @@ endif()
 
 find_package(ROCBLAS REQUIRED)
 find_package(Boost COMPONENTS filesystem REQUIRED)
-find_package(SQLite3 REQUIRED)
-find_package(BZip2 REQUIRED)
 find_package(amd_comgr REQUIRED)
 
 add_subdirectory(ThirdParty/mitransform_kernels)
@@ -67,7 +65,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES native)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/json/include)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_kernels roc::rocblas Boost::filesystem SQLite::SQLite3 BZip2::BZip2 amd_comgr ${CMAKE_DL_LIBS})
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_kernels roc::rocblas Boost::filesystem amd_comgr ${CMAKE_DL_LIBS})
 
 add_executable(${PROJECT_NAME}_test ${${PROJECT_NAME}_test_SOURCE_FILES})
 target_compile_features(${PROJECT_NAME}_test PUBLIC cxx_std_17)
