@@ -43,7 +43,7 @@
 #include "verify.hpp"
 #include "tensor_util.hpp"
 
-#define MIO_TRANSFORM_DEBUG 0
+#define MIO_TRANSFORM_DEBUG 1
 
 #if(MIO_TRANSFORM_DEBUG)
 template <class T>
