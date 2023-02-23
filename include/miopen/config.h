@@ -154,7 +154,7 @@
 #endif
 
 // Otherwise, pArgs() is not defined, if compiled with HIP compiler.
-#if 0// !__HIP_CLANG_ONLY__
+#if !__HIP_CLANG_ONLY__
 
 #include <cstddef>
 #include <tuple>
