@@ -2137,10 +2137,10 @@ static void find_permutation(const std::string& src_layout, const std::string& d
     std::sort(permVec.begin(), permVec.end(),
         [](const auto & a, const auto & b) -> bool
         {
-            return a.first > b.first;
+            return a.first < b.first;
         });
 
-    printf("Permutation for %s -> %s: ");
+    printf("Permutation for %s -> %s: ", src_layout.c_str(), dst_layout.c_str());
     for (int i = 0; i < permVec.size(); i++)
 	    printf("%d ", permVec[i]);
     printf("\n");
@@ -2174,7 +2174,7 @@ void TransformTensor(const Handle& handle,
         MIOPEN_THROW("Tensor dimension must be the same");
     }
 
-#if 0
+#if 1
     // Prepare to perform Y_perm(i0, i1, ...) = alpha * X{i0,i1,...} + beta * Y_perm(i0,i1,...)
     // using gpuTT library.
     auto xLayout = xDesc.GetLayout_str();
